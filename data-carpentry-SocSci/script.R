@@ -101,4 +101,50 @@ memb_assoc <- as.factor(memb_assoc)
 levels(memb_assoc)
 plot(memb_assoc)
 memb_assoc
-levels(memb_assoc) # WHY ISN'T THIS SHOWING THE LEVELS? 
+levels(memb_assoc) # WHY ISN'T THIS SHOWING THE LEVELS? But the list of commands worked in the console
+# -----------
+# 2021-08-15
+# Data wrangling
+# to select columns throughout the dataframe
+select(interviews, village, no_membrs, months_lack_food)
+# to select a series of connect columns
+select(interviews, village:respondent_wall_type)
+# filter observations based on a specific criteria
+filter(interviews, village == "Chirodzo")
+# filter observations with "and" operator (comma or &), output dataframe satisfies ALL specified conditions
+filter(interviews, village == "Chirodzo", rooms>1 & no_meals>2)
+# filter observations with "or" operator
+filter(interviews, village=="Chirodzo"|village=="Ruaca")
+# selecting and filtering at the same time using PIPES (and assigning it to a new object)
+interviews_ch <- interviews %>% filter(village=="Chirodzo") %>% select(village:respondent_wall_type)
+interviews %>% filter(memb_assoc=="yes") %>% select(affect_conflicts, liv_count, no_meals)
+# Q: What is the average no. of people per room? 
+interviews_room <- interviews %>% mutate(people_per_room = no_membrs/rooms)
+# remove cases which are NULL, and then calculate
+interviews %>% filter(!is.na(memb_assoc)) %>% mutate(people_per_room = no_membrs/rooms)
+# exercise. Yay! I got it right. 
+interviews_totalMeals <- interviews %>% mutate (total_meals = no_membrs * no_meals) %>% filter (total_meals>20) %>% select(village, total_meals)
+# Q: compute average household size by village
+interviews %>% group_by(village) %>% summarize(mean_no_membrs=mean(no_membrs))
+interviews %>% group_by(village, memb_assoc) %>% summarise(mean_no_membrs=mean(no_membrs))
+interviews %>%
+  filter(!is.na(memb_assoc)) %>%
+  group_by(village, memb_assoc) %>%
+  summarize(mean_no_membrs = mean(no_membrs))
+# Q: summarize, with minimum household size
+interviews %>%   filter(!is.na(memb_assoc)) %>%
+  group_by(village, memb_assoc) %>%
+  summarize(mean_no_membrs = mean(no_membrs), min_membrs = min(no_membrs))
+# Q: summarize, with minimum household size and sort ascending
+interviews %>%   filter(!is.na(memb_assoc)) %>%
+  group_by(village, memb_assoc) %>%
+  summarize(mean_no_membrs = mean(no_membrs), min_membrs = min(no_membrs)) %>% arrange(min_membrs)
+# Q: summarize, with minimum household size and sort descending
+interviews %>%   filter(!is.na(memb_assoc)) %>%
+  group_by(village, memb_assoc) %>%
+  summarize(mean_no_membrs = mean(no_membrs), min_membrs = min(no_membrs)) %>% arrange(desc(min_membrs))
+# counting
+interviews %>% count(village)
+# count results in decreasing order
+interviews %>% count(village, sort = TRUE)
+# Exercise: How many households in the survey have an average of two meals per day? Three meals per day? Are there any other numbers of meals represented?
